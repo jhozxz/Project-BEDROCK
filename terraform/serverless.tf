@@ -1,6 +1,6 @@
-# 1. The S3 Bucket
+# 1. The S3 Bucket (Fixed Name: No slashes allowed)
 resource "aws_s3_bucket" "assets" {
-  bucket = "bedrock-assets-alt/soe/025/1300" 
+  bucket = "bedrock-assets-alt-soe-025-1300" 
   tags   = { "Project" = "Bedrock" }
 }
 

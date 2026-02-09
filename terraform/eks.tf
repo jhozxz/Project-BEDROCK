@@ -7,15 +7,14 @@ module "eks" {
 
   cluster_endpoint_public_access = true
 
-  # --- FIX 1: KMS & Encryption (Must be INSIDE the module block) ---
+  # KMS Disabled to prevent permission errors
   create_kms_key            = false
   cluster_encryption_config = {}
 
-  # --- FIX 2: Subnets for v20.x (Renamed from subnet_ids) ---
+  # Subnets for Control Plane
   vpc_id                   = module.vpc.vpc_id
   control_plane_subnet_ids = module.vpc.private_subnets
 
-  # Requirement 4.4: Control Plane Logging
   cluster_enabled_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
   eks_managed_node_groups = {
@@ -23,9 +22,11 @@ module "eks" {
       min_size     = 1
       max_size     = 3
       desired_size = 2
-      instance_types = ["t3.medium"]
+      
+      # CHANGED: t3.medium -> t3.micro (Free Tier Eligible)
+      instance_types = ["t3.micro"]
 
-      # Node groups still use "subnet_ids" inside their own block
+      # Subnets for Worker Nodes
       subnet_ids = module.vpc.private_subnets
       
       tags = {
@@ -34,7 +35,6 @@ module "eks" {
     }
   }
 
-  # Grant the creator (you/Terraform) admin permissions
   enable_cluster_creator_admin_permissions = true
 
   tags = {
@@ -42,7 +42,6 @@ module "eks" {
   }
 }
 
-# Requirement 4.4: Application Logging (CloudWatch Addon)
 resource "aws_eks_addon" "cloudwatch_observability" {
   cluster_name = module.eks.cluster_name
   addon_name   = "amazon-cloudwatch-observability"
