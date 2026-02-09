@@ -1,6 +1,6 @@
 # 1. The S3 Bucket
 resource "aws_s3_bucket" "assets" {
-  bucket = "bedrock-assets-[your-student-id]" 
+  bucket = "bedrock-assets-alt/soe/025/1300" 
   tags   = { "Project" = "Bedrock" }
 }
 
