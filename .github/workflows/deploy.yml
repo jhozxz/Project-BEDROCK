@@ -34,7 +34,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3  # Updated to v3 for stability
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
@@ -48,17 +48,17 @@ jobs:
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve -input=false
       
       # Requirement: Generate Grading JSON
       - name: Generate Grading Output
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform output -json > ../grading.json
       
-      # Optional: Upload grading.json as artifact so you can download it
+      # FIXED: Updated to v4 to solve the error
       - name: Upload Artifact
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: grading-json
           path: grading.json
