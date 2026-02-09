@@ -6,10 +6,11 @@ resource "kubernetes_namespace" "retail_app" {
 
 resource "helm_release" "retail_store" {
   name       = "retail-store"
-  repository = "oci://public.ecr.aws/aws-containers/retail-store-sample-chart"
+  # FIX: Point to the parent registry, not the full chart path. 
+  # Terraform appends the chart name automatically.
+  repository = "oci://public.ecr.aws/aws-containers"
   chart      = "retail-store-sample-chart"
   namespace  = kubernetes_namespace.retail_app.metadata[0].name
   
-  # Wait for the cluster to be ready
   depends_on = [module.eks]
 }
