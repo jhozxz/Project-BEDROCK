@@ -3,12 +3,17 @@ module "eks" {
   version = "~> 20.0"
 
   cluster_name    = "project-bedrock-cluster"
-  cluster_version = "1.29" 
+  cluster_version = "1.29"
 
   cluster_endpoint_public_access = true
 
-  vpc_id     = module.vpc.vpc_id
-  subnet_ids = module.vpc.private_subnets
+  # --- FIX 1: KMS & Encryption (Must be INSIDE the module block) ---
+  create_kms_key            = false
+  cluster_encryption_config = {}
+
+  # --- FIX 2: Subnets for v20.x (Renamed from subnet_ids) ---
+  vpc_id                   = module.vpc.vpc_id
+  control_plane_subnet_ids = module.vpc.private_subnets
 
   # Requirement 4.4: Control Plane Logging
   cluster_enabled_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
@@ -19,8 +24,10 @@ module "eks" {
       max_size     = 3
       desired_size = 2
       instance_types = ["t3.medium"]
+
+      # Node groups still use "subnet_ids" inside their own block
+      subnet_ids = module.vpc.private_subnets
       
-      # Tagging requirement
       tags = {
         "Project" = "Bedrock"
       }
@@ -41,13 +48,3 @@ resource "aws_eks_addon" "cloudwatch_observability" {
   addon_name   = "amazon-cloudwatch-observability"
   depends_on   = [module.eks]
 }
-
-# --- ADD THESE 2 LINES TO FIX THE KMS ERROR ---
-  create_kms_key            = false
-  cluster_encryption_config = {}
-  # ----------------------------------------------
-
-  vpc_id     = module.vpc.vpc_id
-  subnet_ids = module.vpc.private_subnets
-
-  # ... rest of your file remains the same ...
